@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>مسابقه صوتی حفظ قرآن | جزء اول</title>
-<style>
+ <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>مسابقه صوتی حفظ قرآن | جزء اول</title>
+  <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Tahoma,Arial,sans-serif}
 body{color:#eef7ff;background:#030b18;overflow-x:hidden}
 body:before,body:after{content:"";position:fixed;border-radius:50%;filter:blur(70px);opacity:.35;z-index:-2;animation:float 9s ease-in-out infinite}
@@ -27,33 +28,56 @@ audio{width:100%;margin-top:16px;filter:sepia(.15) saturate(1.4) hue-rotate(165d
 @keyframes wave{50%{height:30px;box-shadow:0 0 10px #00bfff}}
 .notice{border-right:3px solid #18bfff;padding:10px 13px;background:#0b4a6b22;border-radius:12px;line-height:1.9}
 @media(max-width:600px){h1{font-size:23px}.ayah{font-size:27px}.card{padding:17px}}
+
+.player-card{margin-top:16px;padding:14px 15px;border-radius:20px;background:linear-gradient(135deg,#0b3152aa,#062039aa);border:1px solid #39c8ff33;box-shadow:inset 0 1px #ffffff10,0 10px 35px #00101f66;transition:.35s}.player-card.playing{box-shadow:0 0 35px #009dff25,inset 0 1px #ffffff10}.player-title{display:flex;align-items:center;gap:9px;color:#a9dfff;font-size:13px;margin-bottom:8px}.music-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#087cff33;color:#65d9ff;font-size:20px}.live-dot{width:7px;height:7px;border-radius:50%;background:#35d9ff;box-shadow:0 0 12px #35d9ff;opacity:.5}.playing .live-dot{opacity:1;animation:blink .9s infinite}.playing .music-icon{animation:musicPulse 1.2s infinite}@keyframes blink{50%{opacity:.25}}@keyframes musicPulse{50%{transform:scale(1.08);box-shadow:0 0 18px #00bfff44}}
+
+.mode-pill{display:table;margin:5px auto 8px;padding:7px 12px;border-radius:99px;background:#078cff18;border:1px solid #36c9ff38;color:#6bd8ff;font-size:12px;animation:rise .6s ease both}.hint{text-align:center;color:#77a9c6;font-size:13px;margin:3px 0 13px}
 </style>
-</head>
-<body>
-<header><div class="logo">📖</div><h1>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ</h1><p>مسابقه صوتی حفظ قرآن کریم • جزء اول • استاد محمد صدیق منشاوی</p></header>
-<main>
-<section class="card">
-<div class="top"><span id="qnum">سؤال ۱</span><span class="badge">جزء اول</span><span class="score">امتیاز: <b id="score">۰</b></span></div>
-<div class="progress"><div class="bar" id="bar"></div></div>
-<div class="prompt" id="prompt"></div>
-<div class="ayah" id="given"></div>
-<div class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-<div class="buttons">
-<button class="btn" id="play">🔊 پخش آیه</button>
-<button class="btn green" id="enableMic">🎙️ فعال کردن میکروفون</button>
-<button class="btn red" id="mic" disabled>🎤 شروع پاسخ</button>
-<button class="btn green" id="next" disabled>➡️ سؤال بعدی</button>
-</div>
-<audio id="player" controls preload="none"></audio>
-<div class="status" id="status">آیه را گوش کنید؛ بعد از پایان تلاوت، پاسخ فعال می‌شود.</div>
-<div class="result" id="result"></div>
-</section>
-<section class="card">
-<div class="notice"><b>روش آزمون:</b> یک آیه کامل از منشاوی پخش می‌شود، سپس متوقف می‌شود و شما باید آیه بعدی را از حفظ بخوانید. سؤال‌ها در محدوده جزء اول هستند.</div>
-<p class="small">جزء اول شامل سوره حمد و آیات ۱ تا ۱۴۱ سوره بقره است. برای هر آیه از فایل صوتی آیه‌به‌آیه استفاده می‌شود. برای میکروفون، اجرای سایت روی HTTPS (مثل GitHub Pages) مطمئن‌تر است.</p>
-</section>
-</main>
-<script>
+ </head>
+ <body>
+  <header>
+   <div class="logo">📖</div>
+   <h1>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ</h1>
+   <p>مسابقه صوتی حفظ قرآن کریم • آیات منتخب و دشوار جزء اول • استاد محمد صدیق منشاوی</p>
+  </header>
+  <main>
+   <section class="card">
+    <div class="top">
+     <span id="qnum">سؤال ۱</span><span class="badge">جزء اول</span><span class="score">امتیاز: <b id="score">۰</b></span>
+    </div>
+    <div class="progress">
+     <div class="bar" id="bar"></div>
+    </div>
+    <div class="mode-pill">🎯 حالت «ادامه آیه»</div>
+    <div class="prompt" id="prompt"></div>
+    <div class="ayah" id="given"></div>
+    <div class="hint" id="hint">منشاوی فقط ابتدای آیه را می‌خواند؛ سپس شما ادامه می‌دهید.</div>
+    <div class="wave" id="wave">
+     <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <div class="buttons">
+     <button class="btn" id="play">🔊 پخش آیه</button>
+     <button class="btn green" id="enableMic">🎙️ فعال کردن میکروفون</button>
+     <button class="btn red" id="mic" disabled>🎤 شروع پاسخ</button>
+     <button class="btn green" id="next" disabled>➡️ سؤال بعدی</button>
+    </div>
+    <div class="player-card" id="playerCard">
+     <div class="player-title">
+      <span class="music-icon">♫</span><span>تلاوت منشاوی</span><span class="live-dot"></span>
+     </div>
+     <audio id="player" controls preload="none"></audio>
+    </div>
+    <div class="status" id="status">آیه را گوش کنید؛ بعد از پایان تلاوت، پاسخ فعال می‌شود.</div>
+    <div class="result" id="result"></div>
+   </section>
+   <section class="card">
+    <div class="notice">
+     <b>روش آزمون:</b> یک آیه کامل از منشاوی پخش می‌شود، سپس متوقف می‌شود و شما باید آیه بعدی را از حفظ بخوانید. سؤال‌ها در محدوده جزء اول هستند.
+    </div>
+    <p class="small">این نسخه سوره حمد را حذف کرده و فقط آیات ۱ تا ۱۴۱ سوره بقره را در نظر می‌گیرد. سؤال‌ها تصادفی و با اولویت آیات طولانی‌تر و دشوارتر انتخاب می‌شوند. برای هر آیه از فایل صوتی آیه‌به‌آیه استفاده می‌شود. برای میکروفون، اجرای سایت روی HTTPS (مثل GitHub Pages) مطمئن‌تر است.</p>
+   </section>
+  </main>
+  <script>
 const BAH=[
 "الم","ذَٰلِكَ الْكِتَابُ لَا رَيْبَ فِيهِ هُدًى لِّلْمُتَّقِينَ","الَّذِينَ يُؤْمِنُونَ بِالْغَيْبِ وَيُقِيمُونَ الصَّلَاةَ وَمِمَّا رَزَقْنَاهُمْ يُنفِقُونَ","وَالَّذِينَ يُؤْمِنُونَ بِمَا أُنزِلَ إِلَيْكَ وَمَا أُنزِلَ مِن قَبْلِكَ وَبِالْآخِرَةِ هُمْ يُوقِنُونَ","أُولَٰئِكَ عَلَىٰ هُدًى مِّن رَّبِّهِمْ وَأُولَٰئِكَ هُمُ الْمُفْلِحُونَ"
 ];
@@ -75,28 +99,82 @@ async function loadJuz(){
  try{
   const r=await fetch("https://api.alquran.cloud/v1/surah/2/quran-uthmani");const j=await r.json();
   baq=j.data.ayahs.slice(0,141).map(x=>x.text);
-  questions=[...F.map((x,k)=>({s:1,a:k+1,text:x,next:F[k+1]||baq[0]})),...baq.map((x,k)=>({s:2,a:k+1,text:x,next:baq[k+1]||"پایان جزء اول"}))];
+  questions=baq.map((x,k)=>({s:2,a:k+1,text:x,next:baq[k+1]||"پایان جزء اول"})); shuffleQuestions();
   render();
  }catch(e){
-  questions=F.map((x,k)=>({s:1,a:k+1,text:x,next:F[k+1]||"پایان سوره"}));
-  $("status").textContent="جزء اول کامل بارگذاری نشد؛ نسخه آزمایشی سوره حمد آماده است.";
+  questions=[];
+  $("status").innerHTML="⚠️ آیات جزء اول دریافت نشد. برای دریافت بانک سؤال، اینترنت را بررسی کنید.";
   render();
  }
 }
+
+function shuffleQuestions(){
+  
+  const sorted=[...questions].sort((a,b)=>b.text.length-a.text.length);
+  const hardCount=Math.min(55,sorted.length);
+  const pool=sorted.slice(0,hardCount);
+  for(let x=pool.length-1;x>0;x--){const j=Math.floor(Math.random()*(x+1));[pool[x],pool[j]]=[pool[j],pool[x]]}
+  questions=pool;
+  i=0;
+}
 function render(){
- const q=questions[i];$("qnum").textContent="سؤال "+fa(i+1);$("given").textContent=q.text;
- $("prompt").textContent=`آیه ${q.s}:${q.a} را کامل گوش کنید؛ سپس ادامه آیه را از حفظ بخوانید.`;
+ const q=questions[i];$("qnum").textContent="سؤال "+fa(i+1);
+ const chars=[...(q.text.match(/[؀-ۿ]/g)||[])];
+ let count=0,cut=q.text.length;
+ for(let k=0;k<q.text.length;k++){if(/[\u0600-\u06FF]/.test(q.text[k])){count++;if(count>=6){cut=k+1;break}}}
+ $("given").innerHTML=`<span>${q.text.slice(0,cut)}</span><span class="ellipsis">…</span>`;
+ $("prompt").textContent=`آیه ${q.s}:${q.a} — فقط چند حرف اول پخش می‌شود؛ ادامه را از حفظ بخوانید.`;
  $("bar").style.width=(i/questions.length*100)+"%";$("result").style.display="none";$("next").disabled=true;$("mic").disabled=true;
  $("player").removeAttribute("src");$("player").load();$("wave").style.opacity=".45";
  $("status").textContent="برای شنیدن تلاوت روی «پخش آیه» بزنید.";
 }
 function playAyah(){
- const q=questions[i], url=`https://cdn.islamic.network/quran/audio/128/ar.minshawi/${globalNumber(q.s,q.a)}.mp3`,p=$("player");
- $("play").disabled=true;$("mic").disabled=true;$("status").textContent="🎙️ تلاوت استاد منشاوی در حال پخش است...";$("wave").style.opacity="1";
- p.src=url;p.playbackRate=.9;p.onloadeddata=()=>{$("status").textContent="🎙️ تلاوت آماده است؛ آیه را کامل گوش کنید."};
- p.onended=()=>{$("status").textContent="✅ تمام شد! حالا میکروفون را فعال کنید و ادامه آیه را بخوانید."; $("play").disabled=false;if(micReady)$("mic").disabled=false;$("wave").style.opacity=".45"};
- p.onerror=()=>{$("status").innerHTML="❌ فایل صوتی این آیه دریافت نشد. اگر فایل را محلی باز کرده‌اید، بعداً آن را روی GitHub Pages اجرا کنید."; $("play").disabled=false;$("wave").style.opacity=".45"};
- p.play().catch(()=>{$("status").textContent="▶️ پخش خودکار مسدود شد؛ دکمه ▶ پخش‌کننده را بزنید.";$("play").disabled=false});
+ const q=questions[i];
+ const url=`https://cdn.islamic.network/quran/audio/128/ar.minshawi/${globalNumber(q.s,q.a)}.mp3`;
+ const p=$("player");
+ $("play").disabled=true;$("mic").disabled=true;
+ $("status").textContent="🎙️ منشاوی ابتدای آیه را می‌خواند...";
+ $("wave").style.opacity="1";$("playerCard").classList.add("playing");
+
+ p.src=url;p.playbackRate=.9;
+
+ p.onloadedmetadata=()=>{
+   $("status").textContent="🎙️ گوش کنید؛ فقط ابتدای آیه پخش می‌شود...";
+   // Estimate the time needed for the first 6 Arabic letters.
+   // Longer ayahs generally have slightly slower/longer openings.
+   const letters=(q.text.match(/[\u0600-\u06FF]/g)||[]).length;
+   const fraction=Math.min(.25,Math.max(.09,6/Math.max(letters,12)));
+   const target=Math.min(p.duration*.28,Math.max(1.0,p.duration*fraction));
+   p._partialTarget=target;
+   p._partialDone=false;
+   p.currentTime=0;
+   p.ontimeupdate=()=>{
+     if(!p._partialDone && p.currentTime>=p._partialTarget){
+       p._partialDone=true;
+       p.pause();
+       $("status").textContent="⏸️ توقف! حالا ادامه آیه را از حفظ بخوانید.";
+       $("play").disabled=false;$("playerCard").classList.remove("playing");
+       if(micReady)$("mic").disabled=false;
+     }
+   };
+ };
+ p.onerror=()=>{
+   $("play").disabled=false;$("wave").style.opacity=".45";$("playerCard").classList.remove("playing");
+   $("status").innerHTML="❌ فایل صوتی این آیه دریافت نشد. اتصال اینترنت را بررسی کنید.";
+ };
+ p.onended=()=>{
+   if(!p._partialDone){
+     p._partialDone=true;
+     $("status").textContent="⏸️ ابتدای آیه تمام شد؛ حالا ادامه آیه را بخوانید.";
+     $("play").disabled=false;$("playerCard").classList.remove("playing");
+     if(micReady)$("mic").disabled=false;
+   }
+   $("wave").style.opacity=".45";
+ };
+ p.play().catch(()=>{
+   $("status").textContent="▶️ برای پخش، دکمه ▶ داخل پخش‌کننده را بزنید.";
+   $("play").disabled=false;
+ });
 }
 async function enableMic(){
  if(!navigator.mediaDevices?.getUserMedia){$("status").textContent="❌ مرورگر اجازه دسترسی به میکروفون را نمی‌دهد؛ Chrome را امتحان کنید.";return}
@@ -119,4 +197,5 @@ function startMic(){
 $("play").onclick=playAyah;$("enableMic").onclick=enableMic;$("mic").onclick=startMic;$("next").onclick=()=>{if(i<questions.length-1){i++;render()}else{$("status").textContent="🎉 جزء اول تمام شد! آفرین.";$("next").disabled=true}};
 loadJuz();
 </script>
-</body></html>
+ </body>
+</html>
