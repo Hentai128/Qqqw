@@ -3,7 +3,7 @@
  <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <titleتمرین اجزا کلاس نیمه خصوصی حفظ| جزء اول</title>
+  <title>مسابقه صوتی حفظ قرآن | جزء اول</title>
   <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Tahoma,Arial,sans-serif}
 body{color:#eef7ff;background:#030b18;overflow-x:hidden}
@@ -51,7 +51,7 @@ audio{width:100%;margin-top:16px;filter:sepia(.15) saturate(1.4) hue-rotate(165d
     <div class="mode-pill">🎯 حالت «ادامه آیه»</div>
     <div class="prompt" id="prompt"></div>
     <div class="ayah" id="given"></div>
-    <div class="hint" id="hint">منشاوی فقط ابتدای آیه را می‌خواند؛ سپس شما ادامه می‌دهید.</div>
+    <div class="hint" id="hint">منشاوی فقط چند کلمه اول آیه را می‌خواند تا آیه مشخص شود؛ سپس شما باید «آیه بعدی» را کامل از حفظ بخوانید.</div>
     <div class="wave" id="wave">
      <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
     </div>
@@ -88,11 +88,17 @@ const F=[
 // To keep this file lightweight, the remaining Baqarah text is fetched from a public Quran API at runtime.
 let baq=[];
 let questions=[];
-let i=0,score=0,micReady=false,recognition=null;
+let i=0,score=0,micReady=false,recognition=null,readyForAnswer=false;
+const REVEAL_WORDS=4; // how many words of the ayah to show/play so it's identifiable
 
 const $=id=>document.getElementById(id), fa=n=>String(n).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
 function norm(s){return s.normalize("NFKC").replace(/[ًٌٍَُِّْـٰۖۗۚۛۜ۝۞]/g,"").replace(/[إأآٱ]/g,"ا").replace(/ى/g,"ی").replace(/ؤ/g,"و").replace(/ئ/g,"ی").replace(/ة/g,"ه").replace(/[^\u0600-\u06FF\s]/g,"").replace(/\s+/g," ").trim()}
 function words(s){return norm(s).split(" ").filter(Boolean)}
+function firstWords(text,maxWords){
+  const parts=text.split(/\s+/).filter(Boolean);
+  const n=Math.min(maxWords,parts.length);
+  return {shown:parts.slice(0,n).join(" "),count:n,total:parts.length};
+}
 function globalNumber(s,a){let c=[0,7,286,200,176,120,165,206,75,123,110,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5];let n=0;for(let j=1;j<s;j++)n+=c[j];return n+a}
 async function loadJuz(){
  $("status").textContent="📖 در حال آماده‌سازی آیات جزء اول...";
@@ -108,8 +114,8 @@ async function loadJuz(){
  }
 }
 
-function shuffleQuestions(){
-  
+function shuffleQuestions(){.
+.
   const sorted=[...questions].sort((a,b)=>b.text.length-a.text.length);
   const hardCount=Math.min(55,sorted.length);
   const pool=sorted.slice(0,hardCount);
@@ -119,14 +125,15 @@ function shuffleQuestions(){
 }
 function render(){
  const q=questions[i];$("qnum").textContent="سؤال "+fa(i+1);
- const chars=[...(q.text.match(/[؀-ۿ]/g)||[])];
- let count=0,cut=q.text.length;
- for(let k=0;k<q.text.length;k++){if(/[\u0600-\u06FF]/.test(q.text[k])){count++;if(count>=6){cut=k+1;break}}}
- $("given").innerHTML=`<span>${q.text.slice(0,cut)}</span><span class="ellipsis">…</span>`;
- $("prompt").textContent=`آیه ${q.s}:${q.a} — فقط چند حرف اول پخش می‌شود؛ ادامه را از حفظ بخوانید.`;
+ const rev=firstWords(q.text,REVEAL_WORDS);
+ q._reveal=rev;
+ const showEllipsis=rev.count<rev.total;
+ $("given").innerHTML=`<span>${rev.shown}</span>${showEllipsis?'<span class="ellipsis"> …</span>':''}`;
+ $("prompt").textContent=`آیه ${q.s}:${q.a} — چند کلمه اول پخش می‌شود تا آیه مشخص شود؛ سپس آیه بعدی را از حفظ بخوانید.`;
  $("bar").style.width=(i/questions.length*100)+"%";$("result").style.display="none";$("next").disabled=true;$("mic").disabled=true;
  $("player").removeAttribute("src");$("player").load();$("wave").style.opacity=".45";
  $("status").textContent="برای شنیدن تلاوت روی «پخش آیه» بزنید.";
+ readyForAnswer=false;
 }
 function playAyah(){
  const q=questions[i];
@@ -139,12 +146,15 @@ function playAyah(){
  p.src=url;p.playbackRate=.9;
 
  p.onloadedmetadata=()=>{
-   $("status").textContent="🎙️ گوش کنید؛ فقط ابتدای آیه پخش می‌شود...";
-   // Estimate the time needed for the first 6 Arabic letters.
-   // Longer ayahs generally have slightly slower/longer openings.
-   const letters=(q.text.match(/[\u0600-\u06FF]/g)||[]).length;
-   const fraction=Math.min(.25,Math.max(.09,6/Math.max(letters,12)));
-   const target=Math.min(p.duration*.28,Math.max(1.0,p.duration*fraction));
+   $("status").textContent="🎙️ گوش کنید؛ فقط چند کلمه اول آیه پخش می‌شود...";
+   // Match the audio cut-off to the words already revealed on screen,
+   // using the character-length ratio as a proxy for speaking time
+   // (plus a small buffer for elongation/pauses in tajweed), instead of
+   // a fixed letter count unrelated to what's shown.
+   const rev=q._reveal||firstWords(q.text,REVEAL_WORDS);
+   const charFraction=rev.shown.length/Math.max(q.text.length,1);
+   const fraction=Math.min(.65,Math.max(.14,charFraction*1.2));
+   const target=rev.count>=rev.total?p.duration:Math.max(1.1,p.duration*fraction);
    p._partialTarget=target;
    p._partialDone=false;
    p.currentTime=0;
@@ -152,7 +162,8 @@ function playAyah(){
      if(!p._partialDone && p.currentTime>=p._partialTarget){
        p._partialDone=true;
        p.pause();
-       $("status").textContent="⏸️ توقف! حالا ادامه آیه را از حفظ بخوانید.";
+       readyForAnswer=true;
+       $("status").textContent="⏸️ توقف! حالا آیه بعدی را از حفظ بخوانید.";
        $("play").disabled=false;$("playerCard").classList.remove("playing");
        if(micReady)$("mic").disabled=false;
      }
@@ -165,7 +176,8 @@ function playAyah(){
  p.onended=()=>{
    if(!p._partialDone){
      p._partialDone=true;
-     $("status").textContent="⏸️ ابتدای آیه تمام شد؛ حالا ادامه آیه را بخوانید.";
+     readyForAnswer=true;
+     $("status").textContent="⏸️ پخش تمام شد؛ حالا آیه بعدی را از حفظ بخوانید.";
      $("play").disabled=false;$("playerCard").classList.remove("playing");
      if(micReady)$("mic").disabled=false;
    }
@@ -176,9 +188,19 @@ function playAyah(){
    $("play").disabled=false;
  });
 }
+function isSecureForMic(){
+ return location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
+}
 async function enableMic(){
- if(!navigator.mediaDevices?.getUserMedia){$("status").textContent="❌ مرورگر اجازه دسترسی به میکروفون را نمی‌دهد؛ Chrome را امتحان کنید.";return}
- try{const st=await navigator.mediaDevices.getUserMedia({audio:true});st.getTracks().forEach(t=>t.stop());micReady=true;$("status").textContent="✅ میکروفون فعال شد. بعد از پایان تلاوت، «شروع پاسخ» را بزنید.";if($("player").ended)$("mic").disabled=false}
+ if(!isSecureForMic()){$("status").innerHTML="⚠️ میکروفون فقط روی <b>HTTPS</b> یا <b>localhost</b> کار می‌کند. این فایل را روی یک سرور HTTPS (مثل GitHub Pages) یا با یک سرور محلی (مثلاً <code>localhost</code>) اجرا کنید؛ باز کردن مستقیم فایل (file://) کار نمی‌کند.";return}
+ if(!navigator.mediaDevices?.getUserMedia){$("status").textContent="❌ این مرورگر از دسترسی به میکروفون پشتیبانی نمی‌کند؛ Chrome را امتحان کنید.";return}
+ try{
+   const st=await navigator.mediaDevices.getUserMedia({audio:true});
+   st.getTracks().forEach(t=>t.stop());
+   micReady=true;
+   $("status").textContent="✅ میکروفون فعال شد. بعد از پایان تلاوت، «شروع پاسخ» را بزنید.";
+   if(readyForAnswer)$("mic").disabled=false;
+ }
  catch(e){$("status").innerHTML="🔴 اجازه میکروفون داده نشد. در پنجره مرورگر روی <b>Allow / اجازه</b> بزنید و دوباره امتحان کنید."}
 }
 function startMic(){
@@ -186,15 +208,25 @@ function startMic(){
  if(!SR){$("status").innerHTML="❌ تشخیص گفتار در این مرورگر پشتیبانی نمی‌شود. <b>Google Chrome</b> را امتحان کنید.";return}
  if(!micReady){$("status").textContent="ابتدا «فعال کردن میکروفون» را بزنید.";return}
  recognition=new SR();recognition.lang="ar-SA";recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=3;
- recognition.onstart=()=>{$("mic").textContent="⏹️ در حال شنیدن...";$("status").textContent="🎤 آرام و شمرده ادامه آیه را بخوانید."};
+ recognition.onstart=()=>{$("mic").textContent="⏹️ در حال شنیدن...";$("status").textContent="🎤 آرام و شمرده آیه بعدی را بخوانید."};
  recognition.onresult=e=>{let heard=e.results[0][0].transcript||"", exp=words(questions[i].next),got=words(heard),hit=0;exp.forEach((w,k)=>{if(got[k]===w)hit++});let pct=exp.length?Math.round(hit/exp.length*100):100,pass=pct>=90;score+=pass?10:Math.round(pct/10);$("score").textContent=fa(score);
  $("result").style.display="block";$("result").innerHTML=`<div class="${pass?'ok':'bad'}"><b>${pass?'🟢 پاسخ صحیح است':'🔴 پاسخ نیاز به اصلاح دارد'}</b></div><p>آنچه سیستم شنید:</p><div class="box">${heard||"—"}</div><p>ادامه صحیح:</p><div class="box">${questions[i].next}</div><p>تطبیق واژه‌ای: <b>${fa(pct)}٪</b></p>`;
  $("next").disabled=false;$("mic").disabled=true};
- recognition.onerror=e=>$("status").textContent="❌ خطای میکروفون: "+e.error;
+ recognition.onerror=e=>{
+   const msgs={"no-speech":"صدایی شنیده نشد؛ دوباره امتحان کنید.","not-allowed":"دسترسی میکروفون مسدود است.","network":"خطای شبکه در تشخیص گفتار؛ اتصال اینترنت را بررسی کنید.","aborted":"ضبط لغو شد."};
+   $("status").textContent="❌ "+(msgs[e.error]||("خطای میکروفون: "+e.error))+" برای تلاش دوباره «شروع پاسخ» را بزنید.";
+   $("mic").disabled=false;
+ };
  recognition.onend=()=>{$("mic").textContent="🎤 شروع پاسخ"};
  try{recognition.start()}catch(e){}
 }
 $("play").onclick=playAyah;$("enableMic").onclick=enableMic;$("mic").onclick=startMic;$("next").onclick=()=>{if(i<questions.length-1){i++;render()}else{$("status").textContent="🎉 جزء اول تمام شد! آفرین.";$("next").disabled=true}};
+if(!isSecureForMic()){
+ $("enableMic").title="این صفحه باید روی HTTPS یا localhost اجرا شود تا میکروفون کار کند.";
+}
+if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){
+ $("mic").title="این مرورگر از تشخیص گفتار پشتیبانی نمی‌کند؛ Chrome دسکتاپ یا اندروید را امتحان کنید.";
+}
 loadJuz();
 </script>
  </body>
